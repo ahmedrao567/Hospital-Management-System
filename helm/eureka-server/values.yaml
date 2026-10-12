@@ -1,0 +1,14 @@
+replicaCount: 1
+
+image:
+  repository: ahmedikram567/hms-eureka-server
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8761
+
+containerPort: 8761
+env: []
+resources: {}

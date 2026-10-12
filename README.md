@@ -34,3 +34,7 @@ A full-stack Hospital Management System built using Java Spring Boot Microservic
 ## Project Status
 
 🚧 Currently under development.
+
+## Docker Compose
+
+The root `.env` sets `COMPOSE_PARALLEL_LIMIT=1` so the initial image build runs serially. This helps avoid Docker Desktop daemon crashes or `EOF` errors when multiple Maven and frontend builds run at the same time on limited-memory machines.

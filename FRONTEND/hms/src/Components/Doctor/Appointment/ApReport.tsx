@@ -95,7 +95,7 @@ const ApReport = ({ appointment }: any) => {
     }, [])
 
     const insertMedicine = () => {
-        form.insertListItem("prescription.medicines", { name: "", dosage: "", frequency: "", duration: "", route: "", type: "", instructions: "" })
+        form.insertListItem("prescription.medicines", { name: "", dosage: "", frequency: "", duration: 0, route: "", type: "", instructions: "" })
     }
 
     const removeMedicine = (index: number) => {

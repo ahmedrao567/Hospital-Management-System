@@ -1,0 +1,190 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: hms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: Tarun@12
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pTarun@12"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - hms-network
+
+  eureka-server:
+    image: ahmedikram567/hms-eureka-server:latest
+    build:
+      context: ./BACKEND/Eureka-Server
+      dockerfile: Dockerfile
+    container_name: hms-eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    networks:
+      - hms-network
+
+  userms:
+    image: ahmedikram567/hms-userms:latest
+    build:
+      context: ./BACKEND/UserMS
+      dockerfile: Dockerfile
+    container_name: hms-userms
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/hms
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Tarun@12
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - hms-network
+
+  profilems:
+    image: ahmedikram567/hms-profilems:latest
+    build:
+      context: ./BACKEND/ProfileMS
+      dockerfile: Dockerfile
+    container_name: hms-profilems
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/profiledb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Tarun@12
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "9100:9100"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - hms-network
+
+  appointment:
+    image: ahmedikram567/hms-appointment:latest
+    build:
+      context: ./BACKEND/Appointment
+      dockerfile: Dockerfile
+    container_name: hms-appointment
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/appointmentdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Tarun@12
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "9200:9200"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - hms-network
+
+  pharmacy:
+    image: ahmedikram567/hms-pharmacy:latest
+    build:
+      context: ./BACKEND/pharmacy
+      dockerfile: Dockerfile
+    container_name: hms-pharmacy
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/pharmacydb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Tarun@12
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "9300:9300"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - hms-network
+
+  media:
+    image: ahmedikram567/hms-media:latest
+    build:
+      context: ./BACKEND/media
+      dockerfile: Dockerfile
+    container_name: hms-media
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mediadb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Tarun@12
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "9400:9400"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - hms-network
+
+  gateway:
+    image: ahmedikram567/hms-gateway:latest
+    build:
+      context: ./BACKEND/GatewayMS
+      dockerfile: Dockerfile
+    container_name: hms-gateway
+    restart: unless-stopped
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "9000:9000"
+    depends_on:
+      eureka-server:
+        condition: service_started
+      userms:
+        condition: service_started
+      profilems:
+        condition: service_started
+      appointment:
+        condition: service_started
+      pharmacy:
+        condition: service_started
+      media:
+        condition: service_started
+    networks:
+      - hms-network
+
+  frontend:
+    image: ahmedikram567/hms-frontend:latest
+    build:
+      context: ./FRONTEND/hms
+      dockerfile: Dockerfile
+    container_name: hms-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      gateway:
+        condition: service_started
+    networks:
+      - hms-network
+
+volumes:
+  mysql_data:
+
+networks:
+  hms-network:
+    driver: bridge

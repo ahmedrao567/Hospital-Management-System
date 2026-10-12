@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: ahmedikram567/hms-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 9000
+
+containerPort: 9000
+env:
+  - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+    value: http://eureka-server:8761/eureka/
+resources: {}
